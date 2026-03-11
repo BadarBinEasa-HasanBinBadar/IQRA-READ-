@@ -4007,19 +4007,26 @@ const App={
   },
   deleteBk(key){const bk={...this.s.bookmarks};delete bk[key];this.persist('bookmarks',bk);this.renderBookmarks();this.toast('Bookmark removed');},
   goToBk(surah,ayah){
-    document.getElementById('bookmark-panel').classList.remove('open');document.getElementById('bk-overlay').classList.remove('active');
-    const jump=()=>{
+    // Close panel first
+    document.getElementById('bookmark-panel').classList.remove('open');
+    document.getElementById('bk-overlay').classList.remove('active');
+    history.replaceState({noor:'surah'},'');
+    const reveal=()=>{
       this.s.currentAyah=ayah;
       this.persist('currentAyah',ayah);
-      this.showSurah();
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{
-        document.getElementById('surah-page').querySelectorAll('.verse-card').forEach(c=>c.classList.add('visible'));
+      this.s.onHomePage=false;
+      document.getElementById('home-page').style.display='none';
+      document.getElementById('surah-page').style.display='block';
+      if(this.uiVisible)document.getElementById('tr-mode-bar').classList.add('visible');
+      document.getElementById('surah-page').querySelectorAll('.verse-card').forEach(c=>c.classList.add('visible'));
+      setTimeout(()=>{
         this.scrollToAyah(ayah);
         const c=document.getElementById(`vc-${ayah}`);
         if(c){c.classList.add('active-verse');setTimeout(()=>{if(!this.s.isPlaying||this.s.currentAyah!==ayah)c.classList.remove('active-verse');},3000);}
-      }));
+      },80);
     };
-    if(surah!==this.s.currentSurah)this.loadSurah(surah).then(()=>setTimeout(jump,700));else{jump();}
+    // Always reload to guarantee surah-page has content (may be empty on first open)
+    this.loadSurah(surah).then(()=>setTimeout(reveal,100));
   },
   exportBookmarks(){const d=JSON.stringify(this.s.bookmarks,null,2);const b=new Blob([d],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='noor-bookmarks.json';a.click();URL.revokeObjectURL(u);this.toast('Bookmarks exported');},
   scrollToAyah(n){const c=document.getElementById(`vc-${n}`);if(c){c.classList.add('visible');setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'center'}),80);}},
