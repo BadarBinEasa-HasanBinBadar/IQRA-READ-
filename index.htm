@@ -3666,7 +3666,9 @@ const App={
 
     document.getElementById('surah-page').innerHTML=html;
     document.getElementById('reader').scrollTop=0;
-    document.getElementById('surah-page').querySelectorAll('.verse-card').forEach(c=>{c.classList.add('visible');this._io&&this._io.observe(c);});
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{
+      document.getElementById('surah-page').querySelectorAll('.verse-card').forEach(c=>{c.classList.add('visible');this._io&&this._io.observe(c);});
+    }));
     this._updateFocusBar();
   },
 
@@ -4010,12 +4012,12 @@ const App={
       this.s.currentAyah=ayah;
       this.persist('currentAyah',ayah);
       this.showSurah();
-      document.getElementById('surah-page').querySelectorAll('.verse-card').forEach(c=>c.classList.add('visible'));
-      setTimeout(()=>{
+      requestAnimationFrame(()=>requestAnimationFrame(()=>{
+        document.getElementById('surah-page').querySelectorAll('.verse-card').forEach(c=>c.classList.add('visible'));
         this.scrollToAyah(ayah);
         const c=document.getElementById(`vc-${ayah}`);
         if(c){c.classList.add('active-verse');setTimeout(()=>{if(!this.s.isPlaying||this.s.currentAyah!==ayah)c.classList.remove('active-verse');},3000);}
-      },80);
+      }));
     };
     if(surah!==this.s.currentSurah)this.loadSurah(surah).then(()=>setTimeout(jump,700));else{jump();}
   },
