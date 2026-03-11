@@ -2794,29 +2794,18 @@ const App={
     elSet('continue-meta',`Surah ${s} · Ayah ${a} · Juz ${juz}`);
     const arEl=document.getElementById('continue-ar');
     const trEl=document.getElementById('continue-tr');
-    // Only use fullSurah if it actually belongs to the current surah — prevents showing Ayah 1 of wrong surah
     const ayahData=(this.s.fullSurah&&this.s.fullSurah.length&&this.s.currentSurah===s)?this.s.fullSurah[a-1]:null;
     if(arEl){
       if(ayahData&&ayahData.words&&ayahData.words.length){
         arEl.textContent=ayahData.words.filter(w=>w.char_type_name!=='end').map(w=>w.text_indopak||w.text).join(' ');
-      } else {
-        arEl.textContent='';
-      }
+      }else{arEl.textContent='';}
     }
     if(trEl){
       if(ayahData){
-        const _rTr=(ayahData.translations&&ayahData.translations.length>0&&ayahData.translations[0].text)
-          ?ayahData.translations[0].text
-          :(ayahData.translation?ayahData.translation.text:'');
-        if(_rTr){
-          const clean=_rTr.replace(/<[^>]*>?/gm,'').replace(/^\d+\.\s*/,'').trim();
-          trEl.textContent=clean.length>90?clean.substring(0,90)+'…':clean;
-        } else {
-          trEl.textContent='';
-        }
-      } else {
-        trEl.textContent='';
-      }
+        const _rTr=(ayahData.translations&&ayahData.translations.length>0&&ayahData.translations[0].text)?ayahData.translations[0].text:(ayahData.translation?ayahData.translation.text:'');
+        if(_rTr){const clean=_rTr.replace(/<[^>]*>?/gm,'').replace(/^\d+\.\s*/,'').trim();trEl.textContent=clean.length>90?clean.substring(0,90)+'…':clean;}
+        else{trEl.textContent='';}
+      }else{trEl.textContent='';}
     }
   },
 
@@ -2938,8 +2927,7 @@ const App={
     const reader=document.getElementById('reader');
     if(!reader)return;
     const rTop=reader.getBoundingClientRect().top;
-    const rH=reader.clientHeight;
-    const midY=rTop+rH*0.35;
+    const midY=rTop+reader.clientHeight*0.35;
     let best=null,bestDist=Infinity;
     document.querySelectorAll('#surah-page .verse-card[data-num]').forEach(card=>{
       const r=card.getBoundingClientRect();
@@ -4022,18 +4010,14 @@ const App={
       this.s.currentAyah=ayah;
       this.persist('currentAyah',ayah);
       this.showSurah();
-      requestAnimationFrame(()=>{
-        document.querySelectorAll('.verse-card').forEach(c=>c.classList.add('visible'));
+      document.getElementById('surah-page').querySelectorAll('.verse-card').forEach(c=>c.classList.add('visible'));
+      setTimeout(()=>{
         this.scrollToAyah(ayah);
         const c=document.getElementById(`vc-${ayah}`);
         if(c){c.classList.add('active-verse');setTimeout(()=>{if(!this.s.isPlaying||this.s.currentAyah!==ayah)c.classList.remove('active-verse');},3000);}
-      });
+      },80);
     };
-    if(surah!==this.s.currentSurah){
-      this.loadSurah(surah).then(()=>setTimeout(jump,700));
-    } else {
-      jump();
-    }
+    if(surah!==this.s.currentSurah)this.loadSurah(surah).then(()=>setTimeout(jump,700));else{jump();}
   },
   exportBookmarks(){const d=JSON.stringify(this.s.bookmarks,null,2);const b=new Blob([d],{type:'application/json'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='noor-bookmarks.json';a.click();URL.revokeObjectURL(u);this.toast('Bookmarks exported');},
   scrollToAyah(n){const c=document.getElementById(`vc-${n}`);if(c){c.classList.add('visible');setTimeout(()=>c.scrollIntoView({behavior:'smooth',block:'center'}),80);}},
